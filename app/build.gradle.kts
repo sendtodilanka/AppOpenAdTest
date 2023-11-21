@@ -35,6 +35,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -49,6 +50,14 @@ dependencies {
 
     // Splashscreen
     implementation("androidx.core:core-splashscreen:1.0.1")
+
+    // Admob
+    implementation ("com.google.android.gms:play-services-ads:22.5.0")
+
+    // Timber
+    implementation("com.jakewharton.timber:timber:5.0.1")
+
+    implementation("androidx.lifecycle:lifecycle-process:2.6.2")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
