@@ -13,6 +13,7 @@ import timber.log.Timber
 
 class App : Application(), Application.ActivityLifecycleCallbacks, LifecycleObserver {
 
+    private var isMobileAdInitialized = false
     private var currentActivity: Activity? = null
     private lateinit var appOpenAdManager: AppOpenAdManager
 
@@ -21,24 +22,42 @@ class App : Application(), Application.ActivityLifecycleCallbacks, LifecycleObse
         if (event == Lifecycle.Event.ON_START) {
             // Show the ad (if available) when the app moves to foreground.
             currentActivity?.let {
-                appOpenAdManager.showAdIfAvailable(it)
+                // Only run after MobileAds initialized
+                if (isMobileAdInitialized) {
+                    showAdIfAvailable(
+                        it, object : AppOpenAdManager.OnShowAdCompleteListener {
+                            override fun onShowAdComplete() {
+
+                            }
+                        }
+                    )
+                }
             }
         }
     }
 
+    fun showAdIfAvailable(
+        activity: Activity,
+        onShowAdCompleteListener: AppOpenAdManager.OnShowAdCompleteListener
+    ) { appOpenAdManager.showAdIfAvailable(activity, onShowAdCompleteListener) }
+
     override fun onCreate() {
         super.onCreate()
 
+        // Step 1: Setup Timber
+        setupTimber()
+
+        // Step 2: Register ActivityLifecycleCallbacks
         registerActivityLifecycleCallbacks(this)
 
-        setupTimber()
+        // Step 3: Setup Mobile Ads
         setupMobileAds()
 
-        // Add LifecycleEventObserver
+        // Step 4: Add LifecycleEventObserver
         val lifecycle = ProcessLifecycleOwner.get().lifecycle
         lifecycle.addObserver(lifecycleEventObserver)
 
-        // Initialize AppOpenAdManager
+        // Step 5: Initialize AppOpenAdManager after Mobile Ads initialization
         appOpenAdManager = AppOpenAdManager()
     }
 
@@ -62,9 +81,21 @@ class App : Application(), Application.ActivityLifecycleCallbacks, LifecycleObse
 
         // Initialize AdMob
         MobileAds.initialize(this) { initializationStatus ->
+            isMobileAdInitialized = true
+
             initializationStatus.adapterStatusMap.forEach { (adapterClass, status) ->
-                Timber.d(
+                Timber.e(
                     "Adapter name: $adapterClass, Description: ${status.description}, Latency: ${status.latency}"
+                )
+            }
+
+            currentActivity?.let {
+                showAdIfAvailable(
+                    it, object : AppOpenAdManager.OnShowAdCompleteListener {
+                        override fun onShowAdComplete() {
+
+                        }
+                    }
                 )
             }
         }

@@ -2,6 +2,7 @@ package com.codebox.appopenadtest
 
 import android.app.Activity
 import android.content.Context
+import android.widget.Toast
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -19,8 +20,16 @@ class AppOpenAdManager {
     /** This is not test id */
     private val AD_UNIT_ID = "ca-app-pub-3738872441062004/4286754084"
 
+    /** Interface definition for a callback to be invoked when an app open ad is complete. */
+    interface OnShowAdCompleteListener {
+        fun onShowAdComplete()
+    }
+
     /** Shows the ad if one isn't already showing. */
-    fun showAdIfAvailable(activity: Activity) {
+    fun showAdIfAvailable(
+        activity: Activity,
+        onShowAdCompleteListener: OnShowAdCompleteListener
+    ) {
         // If the app open ad is already showing, do not show the ad again.
         if (isShowingAd) {
             Timber.d("The app open ad is already showing.")
@@ -30,6 +39,7 @@ class AppOpenAdManager {
         // If the app open ad is not available yet, invoke the callback then load the ad.
         if (!isAdAvailable()) {
             Timber.d("The app open ad is not ready yet.")
+            onShowAdCompleteListener.onShowAdComplete()
             loadAd(activity)
             return
         }
@@ -42,6 +52,7 @@ class AppOpenAdManager {
                 appOpenAd = null
                 isShowingAd = false
 
+                onShowAdCompleteListener.onShowAdComplete()
                 loadAd(activity)
             }
 
@@ -52,6 +63,7 @@ class AppOpenAdManager {
                 appOpenAd = null
                 isShowingAd = false
 
+                onShowAdCompleteListener.onShowAdComplete()
                 loadAd(activity)
             }
 
@@ -82,6 +94,8 @@ class AppOpenAdManager {
         val callback = object : AppOpenAd.AppOpenAdLoadCallback() {
             override fun onAdLoaded(ad: AppOpenAd) {
                 Timber.d("Ad was loaded.")
+                Toast.makeText(context, "Ad was loaded.", Toast.LENGTH_SHORT).show()
+
                 appOpenAd = ad
                 isLoadingAd = false
                 loadTime = Date().time
@@ -89,6 +103,8 @@ class AppOpenAdManager {
 
             override fun onAdFailedToLoad(loadAdError: LoadAdError) {
                 Timber.d(loadAdError.message)
+                Toast.makeText(context, "Ad was failed.", Toast.LENGTH_SHORT).show()
+
                 isLoadingAd = false
             }
         }
