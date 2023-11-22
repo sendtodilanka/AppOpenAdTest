@@ -1,6 +1,7 @@
 package com.codebox.appopenadtest
 
 import android.os.Bundle
+import android.os.Handler
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
@@ -20,11 +21,22 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         // Show SplashScreen
-        val splash = installSplashScreen()
+        var keepSplashOn = true
+        installSplashScreen().setKeepOnScreenCondition { keepSplashOn }
 
         super.onCreate(savedInstanceState)
 
-
+        val maxLoadingTime = 2000L
+        Handler(mainLooper).postDelayed({
+            (application as App).showAdIfAvailable(
+                this@MainActivity,
+                object : AppOpenAdManager.OnShowAdCompleteListener {
+                    override fun onShowAdComplete() {
+                        keepSplashOn = false
+                    }
+                }
+            )
+        }, maxLoadingTime)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
